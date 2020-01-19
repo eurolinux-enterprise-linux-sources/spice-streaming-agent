@@ -1,0 +1,33 @@
+From 9a7ba6b16e608054f910a76d28e14fd85a00dec3 Mon Sep 17 00:00:00 2001
+From: Uri Lublin <uril@redhat.com>
+Date: Wed, 1 Aug 2018 11:03:04 +0300
+Subject: [PATCH 2/4] LoadPlugin: call dlclose upon failure
+
+Signed-off-by: Uri Lublin <uril@redhat.com>
+---
+ src/concrete-agent.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/concrete-agent.cpp b/src/concrete-agent.cpp
+index ca666d7..1f8b4b4 100644
+--- a/src/concrete-agent.cpp
++++ b/src/concrete-agent.cpp
+@@ -88,6 +88,7 @@ void ConcreteAgent::LoadPlugin(const std::string &plugin_filename)
+     if (!version) {
+         syslog(LOG_ERR, "error loading plugin %s: no version information",
+                plugin_filename.c_str());
++        dlclose(dl);
+         return;
+     }
+     if (!PluginVersionIsCompatible(*version)) {
+@@ -95,6 +96,7 @@ void ConcreteAgent::LoadPlugin(const std::string &plugin_filename)
+                "error loading plugin %s: plugin interface version %u.%u not accepted",
+                plugin_filename.c_str(),
+                MajorVersion(*version), MinorVersion(*version));
++        dlclose(dl);
+         return;
+     }
+ 
+-- 
+2.17.1
+

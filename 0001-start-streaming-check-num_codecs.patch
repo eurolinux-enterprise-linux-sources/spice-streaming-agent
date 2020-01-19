@@ -1,0 +1,36 @@
+From 5aaaa5bd91261a6b61fcaa75585f8446b9eeb036 Mon Sep 17 00:00:00 2001
+From: Uri Lublin <uril@redhat.com>
+Date: Tue, 31 Jul 2018 16:18:15 +0300
+Subject: [PATCH 1/4] start streaming: check num_codecs
+
+The server sends StreamMsgStartStop to tell spice-streaming-agent
+to start streaming and a list of available codecs.
+
+The first uint8_t is the number of codecs.
+Each following uint8_t is a codec.
+
+This patch checks that the number of codecs in the message, as
+reported by the server, is not too large.
+---
+ src/spice-streaming-agent.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/spice-streaming-agent.cpp b/src/spice-streaming-agent.cpp
+index 1121f35..9ebbf5d 100644
+--- a/src/spice-streaming-agent.cpp
++++ b/src/spice-streaming-agent.cpp
+@@ -95,6 +95,11 @@ static void handle_stream_start_stop(StreamPort &stream_port, uint32_t len)
+     syslog(LOG_INFO, "GOT START_STOP message -- request to %s streaming\n",
+            streaming_requested ? "START" : "STOP");
+     client_codecs.clear();
++    const int mnc = len - 1; /* max num codecs, see struct StreamMsgStartStop */
++    if (msg[0] > mnc) {
++        throw std::runtime_error("num_codecs=" + std::to_string(msg[0]) +
++                                 " > max_num_codecs=" + std::to_string(mnc));
++    }
+     for (int i = 1; i <= msg[0]; ++i) {
+         client_codecs.insert((SpiceVideoCodecType) msg[i]);
+     }
+-- 
+2.17.1
+

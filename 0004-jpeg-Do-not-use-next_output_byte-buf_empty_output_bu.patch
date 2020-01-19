@@ -1,0 +1,34 @@
+From 0605440f7344d9d6d1b047992fbadcd256f2c301 Mon Sep 17 00:00:00 2001
+From: Frediano Ziglio <fziglio@redhat.com>
+Date: Tue, 17 Jul 2018 16:24:06 +0100
+Subject: [PATCH 4/4] jpeg: Do not use next_output_byte buf_empty_output_buffer
+
+The pointer is not updated to the last byte used so using it
+to compute the bytes written into the buffer we ignore some bytes
+causing some image corruptions.
+Note that also free_in_buffer is not updated to last written byte.
+When buf_empty_output_buffer is called the buffer is full so use the
+size of it instead of relying on next_output_byte or free_in_buffer.
+
+Signed-off-by: Frediano Ziglio <fziglio@redhat.com>
+Acked-by: Uri Lublin <uril@redhat.com>
+---
+ src/jpeg.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/jpeg.cpp b/src/jpeg.cpp
+index ceee359..5f6d128 100644
+--- a/src/jpeg.cpp
++++ b/src/jpeg.cpp
+@@ -23,7 +23,7 @@ struct JpegBuffer: public jpeg_destination_mgr
+ static boolean buf_empty_output_buffer(j_compress_ptr cinfo)
+ {
+     JpegBuffer *buf = (JpegBuffer *) cinfo->dest;
+-    size_t size = buf->next_output_byte - &buf->buffer[0];
++    size_t size = buf->buffer.size();
+     buf->buffer.resize(buf->buffer.capacity() * 2);
+     buf->next_output_byte = &buf->buffer[0] + size;
+     buf->free_in_buffer = buf->buffer.size() - size;
+-- 
+2.17.1
+

@@ -1,0 +1,12 @@
+prefix=/usr/local
+includedir=${prefix}/include
+exec_prefix=${prefix}
+plugindir=${exec_prefix}/lib/spice-streaming-agent/plugins
+
+Name: spice-streaming-agent
+Description: SPICE streaming agent headers
+Version: 0.2
+Requires: spice-protocol >= 0.12.14
+
+Libs:
+Cflags: -I${includedir}

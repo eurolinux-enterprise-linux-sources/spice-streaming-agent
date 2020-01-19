@@ -1,0 +1,38 @@
+From d85f863389cf5e36623aad0eb79818e888e15e66 Mon Sep 17 00:00:00 2001
+From: Uri Lublin <uril@redhat.com>
+Date: Tue, 31 Jul 2018 17:15:09 +0300
+Subject: [PATCH 3/4] main: better cleanup when XOpenDisplay or XFixesQuery
+ fail
+
+close f_log if needed.
+close X display if needed.
+---
+ src/spice-streaming-agent.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/spice-streaming-agent.cpp b/src/spice-streaming-agent.cpp
+index 9ebbf5d..f342ebf 100644
+--- a/src/spice-streaming-agent.cpp
++++ b/src/spice-streaming-agent.cpp
+@@ -517,11 +517,18 @@ int main(int argc, char* argv[])
+ 
+     Display *display = XOpenDisplay(NULL);
+     if (display == NULL) {
++        if (f_log) {
++            fclose(f_log);
++        }
+         syslog(LOG_ERR, "failed to open display\n");
+         return EXIT_FAILURE;
+     }
+     int event_base, error_base;
+     if (!XFixesQueryExtension(display, &event_base, &error_base)) {
++        if (f_log) {
++            fclose(f_log);
++        }
++        XCloseDisplay(display);
+         syslog(LOG_ERR, "XFixesQueryExtension failed\n");
+         return EXIT_FAILURE;
+     }
+-- 
+2.17.1
+
