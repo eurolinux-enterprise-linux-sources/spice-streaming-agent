@@ -1,6 +1,6 @@
 Name:           spice-streaming-agent
 Version:        0.2
-Release:        4%{?dist}
+Release:        3%{?dist}
 Summary:        SPICE streaming agent
 Group:          Applications/System
 License:        ASL 2.0
@@ -19,7 +19,7 @@ BuildRequires:  catch-devel
 BuildRequires:  pkgconfig(udev)
 # we need /usr/sbin/semanage program which is available on different
 # packages depending on distribution
-Requires(posttrans): /usr/sbin/semanage
+Requires(post): /usr/sbin/semanage
 Requires(postun): /usr/sbin/semanage
 
 ExclusiveArch: x86_64
@@ -57,9 +57,7 @@ if test -d "%{buildroot}/%{_libdir}/%{name}/plugins"; then
     find %{buildroot}/%{_libdir}/%{name}/plugins -name '*.la' -delete
 fi
 
-# See rhbz#1647789 - call semanage in posttrans, not in post.
-# https://fedoraproject.org/wiki/Packaging:Scriptlets
-%posttrans
+%post
 semanage fcontext -a -t xserver_exec_t %{_bindir}/spice-streaming-agent 2>/dev/null || :
 restorecon %{_bindir}/spice-streaming-agent || :
 
@@ -82,10 +80,6 @@ fi
 %{_libdir}/pkgconfig
 
 %changelog
-* Wed Apr 10 2019 Uri Lublin <uril@redhat.com> - 0.2-4
-- Call semanage in posttrans, not in post
-  Resolves: rhbz#1647789
-
 * Wed Aug  1 2018 Uri Lublin <uril@redhat.com> - 0.2-3
 - Fix coverity issue
   Related: rhbz#1479294
